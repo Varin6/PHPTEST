@@ -3,83 +3,95 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Models\GameModel;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 
 class GameController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
+     * @throws Exception
      */
     public function index()
     {
-        //
+        $cards = $this->initialShuffle();
+
+        $firstCard = $this->getFirstCard($cards);
+
+        $model = $this->buildGameModel($firstCard);
+
+        return view('game')->with('data', $model);
+    }
+
+
+
+
+
+    public function initialShuffle(): array
+    {
+
+        try {
+
+            $response = Http::get('https://higher-lower.code23.com/api/deck');
+            $cards = $response->json();
+            $this->shuffle_assoc($cards);
+
+            return $cards;
+
+        } catch (Exception $e) {
+
+            throw $e;
+
+        }
+
+
+    }
+
+
+    public function shuffle_assoc(&$array) {
+        $keys = array_keys($array);
+
+        shuffle($keys);
+
+        foreach($keys as $key) {
+            $new[$key] = $array[$key];
+        }
+
+        $array = $new;
+
+        return true;
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @return mixed
      */
-    public function create()
+    public function getFirstCard(&$cards)
     {
-        //
+
+        $firstCard =  array_shift($cards);
+        session(['cards' => $cards]);
+        return $firstCard;
+
+
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param array $cards
+     * @param $firstCard
+     * @return Game
      */
-    public function store(Request $request)
+    public function buildGameModel($firstCard): Game
     {
-        //
-    }
+        $model = new Game();
+        $model->firstCard = $firstCard;
+        $model->health = 3;
+        $model->score = 0;
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Game  $game
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Game $game)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Game  $game
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Game $game)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Game  $game
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Game $game)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Game  $game
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Game $game)
-    {
-        //
+        return $model;
     }
 }

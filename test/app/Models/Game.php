@@ -7,5 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
 {
+    public $firstCard;
+    public $health;
+    public $score;
+
     use HasFactory;
 }
