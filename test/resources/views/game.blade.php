@@ -32,8 +32,9 @@
             <p>Health: {{$data->health}}</p>
             <p>Score: {{$data->score}}</p>
 
-            <p>{{$data->firstCard['value']}}</p>
-            <p>{{$data->firstCard['suit']}}</p>
+            <p>{{session('currentCard')['value']}}</p>
+            <p>{{session('currentCard')['suit']}}</p>
+
 
         </div>
 
