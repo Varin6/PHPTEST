@@ -1,0 +1,123 @@
+h1 {
+    color: #ffffff;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+body {
+    color: #ffffff;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #fc00ff;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #00dbde, #fc00ff);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #00dbde, #fc00ff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}
+
+main {
+    display: flex;
+}
+
+.heading {
+    max-width: 200px;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    text-align: center;
+    margin:auto;
+    margin-bottom: 40px;
+}
+
+.mid-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lower, .higher {
+    padding: 0 40px;
+    color: #fff;
+}
+
+.lower i, .higher i {
+    color: #fff;
+    font-size: 30px;
+    transition-duration: 0.3s;
+}
+
+.higher:hover i {
+
+    color: green;
+    transform: scale(1.4);
+
+}
+
+.lower:hover i {
+
+    color: darkred;
+    transform: scale(1.4);
+
+}
+
+.card {
+    border: solid 1px #ffffff;
+    border-radius: 10px;
+    min-height: 300px;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    align-content: space-between;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.card-top, .card-mid, .card-bottom {
+    width: 100%;
+    padding: 10px;
+}
+
+.card-top p, .card-mid p, .card-bottom p {
+    font-size: 36px;
+    margin: 0;
+}
+
+.card-bottom p{
+    text-align: left;
+    transform: rotate(180deg);
+}
+
+.card-mid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-mid p {
+    text-align: center;
+}
+
+.btn-restart {
+    margin-top: 40px;
+    border: solid 1px white;
+    padding: 10px 30px;
+    border-radius: 5px;
+    color: #ffffff;
+    text-decoration: none;
+    transition-duration: .3s;
+}
+
+.btn-restart:hover {
+    color: #000000;
+    background-color: #ffffff;
+}
+
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}

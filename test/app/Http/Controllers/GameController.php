@@ -53,41 +53,34 @@ class GameController extends Controller
 
             $score = $this->getValueFromSession('score');
 
-            $nextCard = $this->getNextCard($cards);
 
+            if (count($cards) <= 0) {
+
+                return $this->conditionWon($currentCard, $health, $score);
+
+            }
 
             if ($health < 1) {
 
-                $model = $this->buildGameModel($nextCard, $health, $score, "Restart the game, no point refreshing....");
-
-                return view('game')->with('data', $model);
+                return $this->conditionLost($currentCard, $health, $score);
             }
+
+
+            $nextCard = $this->getNextCard($cards);
 
             if ($this->isCardHigher($currentCard, $nextCard)) {
 
-                $score = $this->incrementScore($score);
-
-                $model = $this->buildGameModel($nextCard, $health, $score, "Great stuff, carry on!");
-
-                return view('game')->with('data', $model);
+                return $this->conditionAddScore($nextCard, $health, $score);
 
             } else {
 
                 if ($health <= 1) {
 
-                    $health = $this->reduceHealth($health);
-
-                    $model = $this->buildGameModel($nextCard, $health, $score, "That's it, you have failed miserably...");
-
-                    return view('game')->with('data', $model);
+                    return $this->conditionFailure($currentCard, $health, $score);
 
                 } else {
 
-                    $health = $this->reduceHealth($health);
-
-                    $model = $this->buildGameModel($nextCard, $health, $score, "You're one step closer to death...");
-
-                    return view('game')->with('data', $model);
+                    return $this->conditionReduceHealth($nextCard, $health, $score);
 
                 }
 
@@ -99,8 +92,6 @@ class GameController extends Controller
             throw $e;
 
         }
-
-
 
 
     }
@@ -125,40 +116,34 @@ class GameController extends Controller
 
             $score = $this->getValueFromSession('score');
 
-            $nextCard = $this->getNextCard($cards);
+
+            if (count($cards) <= 0) {
+
+               return $this->conditionWon($currentCard, $health, $score);
+
+            }
 
             if ($health < 1) {
 
-                $model = $this->buildGameModel($nextCard, $health, $score, "Restart the game, no point refreshing....");
-
-                return view('game')->with('data', $model);
+                return $this->conditionLost($currentCard, $health, $score);
             }
+
+
+            $nextCard = $this->getNextCard($cards);
 
             if (!$this->isCardHigher($currentCard, $nextCard)) {
 
-                $score = $this->incrementScore($score);
-
-                $model = $this->buildGameModel($nextCard, $health, $score, "Great stuff, carry on!");
-
-                return view('game')->with('data', $model);
+                return $this->conditionAddScore($nextCard, $health, $score);
 
             } else {
 
                 if ($health <= 1) {
 
-                    $health = $this->reduceHealth($health);
-
-                    $model = $this->buildGameModel($nextCard, $health, $score, "That's it, you have failed miserably...");
-
-                    return view('game')->with('data', $model);
+                    return $this->conditionFailure($currentCard, $health, $score);
 
                 } else {
 
-                    $health = $this->reduceHealth($health);
-
-                    $model = $this->buildGameModel($nextCard, $health, $score, "You're one step closer to death...");
-
-                    return view('game')->with('data', $model);
+                    return $this->conditionReduceHealth($nextCard, $health, $score);
 
                 }
 
@@ -173,6 +158,86 @@ class GameController extends Controller
 
     }
 
+
+    /**
+     * Won the game
+     * @param $currentCard
+     * @param $health
+     * @param $score
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function conditionWon($currentCard, $health, $score) {
+
+        $model = $this->buildGameModel($currentCard, $health, $score, "You won!");
+
+        return view('game')->with('data', $model);
+    }
+
+
+    /**
+     * Lost the game and keeps refreshing
+     * @param $currentCard
+     * @param $health
+     * @param $score
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function conditionLost($currentCard, $health, $score) {
+
+        $model = $this->buildGameModel($currentCard, $health, $score, "Restart the game, no point refreshing....");
+
+        return view('game')->with('data', $model);
+    }
+
+
+    /**
+     * Won the round and added score
+     * @param $nextCard
+     * @param $health
+     * @param $score
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function conditionAddScore($nextCard, $health, $score) {
+
+        $score = $this->incrementScore($score);
+
+        $model = $this->buildGameModel($nextCard, $health, $score, "Great stuff, carry on!");
+
+        return view('game')->with('data', $model);
+    }
+
+
+    /**
+     * Lost game
+     * @param $nextCard
+     * @param $health
+     * @param $score
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function conditionFailure($nextCard, $health, $score) {
+
+        $health = $this->reduceHealth($health);
+
+        $model = $this->buildGameModel($nextCard, $health, $score, "That's it, you have failed miserably...");
+
+        return view('game')->with('data', $model);
+    }
+
+
+    /**
+     * Lost round
+     * @param $nextCard
+     * @param $health
+     * @param $score
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function conditionReduceHealth($nextCard, $health, $score) {
+
+        $health = $this->reduceHealth($health);
+
+        $model = $this->buildGameModel($nextCard, $health, $score, "You're one step closer to death...");
+
+        return view('game')->with('data', $model);
+    }
 
 
 
