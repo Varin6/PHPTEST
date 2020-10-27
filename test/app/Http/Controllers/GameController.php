@@ -21,9 +21,11 @@ class GameController extends Controller
     {
         $cards = $this->initialShuffle();
 
-        $firstCard = $this->getFirstCard($cards);
+        $this->assignHealthAndScore(3, 0);
 
-        $model = $this->buildGameModel($firstCard, 3, 0);
+        $nextCard = $this->getNextCard($cards);
+
+        $model = $this->buildGameModel($nextCard, 3, 0);
 
         return view('game')->with('data', $model);
     }
@@ -39,16 +41,41 @@ class GameController extends Controller
 
         try {
 
-            $cards = $this->getCardsFromSession();
+            $cards = $this->getValueFromSession('cards');
 
-            $currentCard = $this->getCurrentCardFromSession();
+            $currentCard = $this->getValueFromSession('currentCard');
+
+            $health = $this->getValueFromSession('health');
+
+            $score = $this->getValueFromSession('score');
+
+            $nextCard = $this->getNextCard($cards);
 
 
-            $firstCard = $this->getFirstCard($cards);
+            if ($this->isCardHigher($currentCard, $nextCard)) {
 
-            $model = $this->buildGameModel($firstCard);
+                $score = $this->incrementScore($score);
 
-            return view('game')->with('data', $model);
+                $model = $this->buildGameModel($nextCard, $health, $score);
+
+                return view('game')->with('data', $model);
+
+            } else {
+
+                if ($health <= 1) {
+
+
+
+                } else {
+
+                    $model = $this->buildGameModel($nextCard, $health - 1, $score);
+
+                    return view('game')->with('data', $model);
+
+                }
+
+            }
+
 
         } catch (Exception $e) {
 
@@ -68,11 +95,11 @@ class GameController extends Controller
 
         try {
 
-            $cards = $this->getCardsFromSession();
+            $cards = $this->getValueFromSession('cards');
 
-            $firstCard = $this->getFirstCard($cards);
+            $nextCard = $this->getNextCard($cards);
 
-            $model = $this->buildGameModel($firstCard);
+            $model = $this->buildGameModel($nextCard);
 
             return view('game')->with('data', $model);
 
@@ -138,28 +165,77 @@ class GameController extends Controller
      * Store array in session once the first item was removed
      * @return mixed
      */
-    public function getFirstCard(&$cards)
+    public function getNextCard(&$cards)
     {
 
-        $firstCard =  array_shift($cards);
+        $nextCard =  array_shift($cards);
 
         session(['cards' => $cards]);
-        session(['currentCard' => $firstCard]);
+        session(['currentCard' => $nextCard]);
 
-        return $firstCard;
+        return $nextCard;
 
 
     }
 
+
+    /**
+     * Assign health and score
+     * @return mixed
+     */
+    public function assignHealthAndScore($health, $score)
+    {
+
+        session(['health' => $health]);
+        session(['score' => $score]);
+
+        return true;
+
+    }
+
+
+    /**
+     * increment score
+     * @param $score
+     * @return mixed
+     */
+    public function incrementScore($score)
+    {
+
+        $score = $score + 1;
+        session(['score' => $score]);
+
+        return $score;
+
+    }
+
+
+    /**
+     * Reduce health
+     * @param $score
+     * @return mixed
+     */
+    public function reduceHealth($health)
+    {
+
+        $health = $health - 1;
+        session(['health' => $health]);
+
+        return $health;
+
+    }
+
+
+
     /**
      * Build view model
-     * @param $firstCard
+     * @param $nextCard
      * @return Game
      */
-    public function buildGameModel($firstCard, $health, $score): Game
+    public function buildGameModel($nextCard, $health, $score): Game
     {
         $model = new Game();
-        $model->firstCard = $firstCard;
+        $model->nextCard = $nextCard;
         $model->health = $health;
         $model->score = $score;
 
@@ -171,16 +247,17 @@ class GameController extends Controller
      * @return \Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
      * @throws Exception
      */
-    public function getCardsFromSession()
+
+    public function getValueFromSession($string)
     {
         try {
 
             // check first if exists, as this is what the good guys do :)
 
-            if (session()->has('cards')) {
+            if (session()->has($string)) {
 
-                $cards = session('cards');
-                return $cards;
+                $value = session($string);
+                return $value;
 
             } else {
 
@@ -197,28 +274,45 @@ class GameController extends Controller
 
 
 
-
     /**
-     * Grab current card from session if they exist
+     * Check if next card is higher
+     * First check the values, if that produces a match - compare the suites next. Those can't equal each other as we only have one deck.
+     *
      * @return \Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
      * @throws Exception
      */
-    public function getCurrentCardFromSession()
+    public function isCardHigher($currentCard, $nextCard)
     {
         try {
 
-            // check first if exists, as this is what the good guys do :)
 
-            if (session()->has('currentCard')) {
+            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard)) {
 
-                $cards = session('currentCard');
-                return $cards;
-
-            } else {
-
-                throw new Exception("Session does not have cards array!");
+                return false;
 
             }
+
+            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard)) {
+
+                return true;
+
+            }
+
+
+            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard)) {
+
+                if ($this->assignSuitScore($currentCard['value']) < $this->assignSuitScore($nextCard)) {
+
+                    return true;
+
+                } else {
+
+                    return false;
+
+                }
+
+            }
+
 
         } catch(Exception $e) {
 
@@ -227,6 +321,122 @@ class GameController extends Controller
         }
 
 
+    }
+
+
+
+
+    /**
+     * Check if next card is lower
+     * First check the values, if that produces a match - compare the suites next. Those can't equal each other as we only have one deck.
+     *
+     * @return \Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
+     * @throws Exception
+     */
+    public function isCardLower($currentCard, $nextCard)
+    {
+        try {
+
+
+            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard)) {
+
+                return true;
+
+            }
+
+            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard)) {
+
+                return false;
+
+            }
+
+
+            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard)) {
+
+                if ($this->assignSuitScore($currentCard['value']) > $this->assignSuitScore($nextCard)) {
+
+                    return true;
+
+                } else {
+
+                    return false;
+
+                }
+
+            }
+
+
+        } catch(Exception $e) {
+
+            throw $e;
+
+        }
+
+
+    }
+
+
+
+
+    /**
+     * Asigns value to the card
+     * @param $cardValue
+     * @return int
+     */
+    public function assignValueScore($cardValue) {
+
+        switch (strtolower($cardValue)) {
+            case "a":
+                return 1;
+            case "2":
+                return 2;
+            case "3":
+                return 3;
+            case "4":
+                return 4;
+            case "5":
+                return 5;
+            case "6":
+                return 6;
+            case "7":
+                return 7;
+            case "8":
+                return 8;
+            case "9":
+                return 9;
+            case "10":
+                return 10;
+            case "j":
+                return 11;
+            case "q":
+                return 12;
+            case "k":
+                return 13;
+            default:
+                return 0;
+        }
+    }
+
+
+    /**
+     * Asign score based on card suit
+     * @param $cardValue
+     * @return int
+     */
+    public function assignSuitScore($cardValue) {
+
+        switch (strtolower($cardValue)) {
+            case "clubs":
+                return 1;
+            case "spades":
+                return 2;
+            case "diamonds":
+                return 3;
+            case "hearts":
+                return 4;
+            default:
+                return 0;
+        }
     }
 
 }

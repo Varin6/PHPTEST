@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
 {
-    public $firstCard;
+    public $nextCard;
     public $health;
     public $score;
 
