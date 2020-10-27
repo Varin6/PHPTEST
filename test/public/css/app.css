@@ -67,6 +67,7 @@ main {
     border-radius: 10px;
     min-height: 300px;
     min-width: 200px;
+    max-width: 200px;
     display: flex;
     align-items: center;
     align-content: space-between;
