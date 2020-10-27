@@ -10,6 +10,7 @@ class Game extends Model
     public $nextCard;
     public $health;
     public $score;
+    public $message;
 
     use HasFactory;
 }

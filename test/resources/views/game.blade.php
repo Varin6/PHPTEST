@@ -27,13 +27,29 @@
 
         <div>
 
-            <h1>Game</h1>
+            <h1>{{$data->message}}</h1>
 
             <p>Health: {{$data->health}}</p>
             <p>Score: {{$data->score}}</p>
 
+
+
             <p>{{session('currentCard')['value']}}</p>
             <p>{{session('currentCard')['suit']}}</p>
+
+
+            @if($data->health > 0)
+
+                <p>
+                <a href="{{ route('higher') }}" class="btn btn-primary btn-submit">Higher</a>
+                <a href="{{ route('lower') }}" class="btn btn-primary btn-submit">Lower</a>
+                </p>
+
+            @endif
+
+            <p>
+            <a href="{{ route('index') }}" class="btn btn-primary btn-submit">Restart</a>
+            </p>
 
 
         </div>

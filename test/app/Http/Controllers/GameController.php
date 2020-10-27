@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Http;
 
 class GameController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      *
@@ -25,10 +27,12 @@ class GameController extends Controller
 
         $nextCard = $this->getNextCard($cards);
 
-        $model = $this->buildGameModel($nextCard, 3, 0);
+        $model = $this->buildGameModel($nextCard, 3, 0, "Good luck!");
 
         return view('game')->with('data', $model);
     }
+
+
 
 
     /**
@@ -52,11 +56,18 @@ class GameController extends Controller
             $nextCard = $this->getNextCard($cards);
 
 
+            if ($health < 1) {
+
+                $model = $this->buildGameModel($nextCard, $health, $score, "Restart the game, no point refreshing....");
+
+                return view('game')->with('data', $model);
+            }
+
             if ($this->isCardHigher($currentCard, $nextCard)) {
 
                 $score = $this->incrementScore($score);
 
-                $model = $this->buildGameModel($nextCard, $health, $score);
+                $model = $this->buildGameModel($nextCard, $health, $score, "Great stuff, carry on!");
 
                 return view('game')->with('data', $model);
 
@@ -64,11 +75,17 @@ class GameController extends Controller
 
                 if ($health <= 1) {
 
+                    $health = $this->reduceHealth($health);
 
+                    $model = $this->buildGameModel($nextCard, $health, $score, "That's it, you have failed miserably...");
+
+                    return view('game')->with('data', $model);
 
                 } else {
 
-                    $model = $this->buildGameModel($nextCard, $health - 1, $score);
+                    $health = $this->reduceHealth($health);
+
+                    $model = $this->buildGameModel($nextCard, $health, $score, "You're one step closer to death...");
 
                     return view('game')->with('data', $model);
 
@@ -89,7 +106,12 @@ class GameController extends Controller
     }
 
 
-    public function lower(Request $request, array $cards)
+    /**
+     * When user guesses lower card
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @throws Exception
+     */
+    public function lower()
     {
 
 
@@ -97,18 +119,57 @@ class GameController extends Controller
 
             $cards = $this->getValueFromSession('cards');
 
+            $currentCard = $this->getValueFromSession('currentCard');
+
+            $health = $this->getValueFromSession('health');
+
+            $score = $this->getValueFromSession('score');
+
             $nextCard = $this->getNextCard($cards);
 
-            $model = $this->buildGameModel($nextCard);
+            if ($health < 1) {
 
-            return view('game')->with('data', $model);
+                $model = $this->buildGameModel($nextCard, $health, $score, "Restart the game, no point refreshing....");
+
+                return view('game')->with('data', $model);
+            }
+
+            if (!$this->isCardHigher($currentCard, $nextCard)) {
+
+                $score = $this->incrementScore($score);
+
+                $model = $this->buildGameModel($nextCard, $health, $score, "Great stuff, carry on!");
+
+                return view('game')->with('data', $model);
+
+            } else {
+
+                if ($health <= 1) {
+
+                    $health = $this->reduceHealth($health);
+
+                    $model = $this->buildGameModel($nextCard, $health, $score, "That's it, you have failed miserably...");
+
+                    return view('game')->with('data', $model);
+
+                } else {
+
+                    $health = $this->reduceHealth($health);
+
+                    $model = $this->buildGameModel($nextCard, $health, $score, "You're one step closer to death...");
+
+                    return view('game')->with('data', $model);
+
+                }
+
+            }
+
 
         } catch (Exception $e) {
 
             throw $e;
 
         }
-
 
     }
 
@@ -232,12 +293,13 @@ class GameController extends Controller
      * @param $nextCard
      * @return Game
      */
-    public function buildGameModel($nextCard, $health, $score): Game
+    public function buildGameModel($nextCard, $health, $score, $message): Game
     {
         $model = new Game();
         $model->nextCard = $nextCard;
         $model->health = $health;
         $model->score = $score;
+        $model->message = $message;
 
         return $model;
     }
@@ -286,22 +348,22 @@ class GameController extends Controller
         try {
 
 
-            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard['value'])) {
 
                 return false;
 
             }
 
-            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard['value'])) {
 
                 return true;
 
             }
 
 
-            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard['value'])) {
 
-                if ($this->assignSuitScore($currentCard['value']) < $this->assignSuitScore($nextCard)) {
+                if ($this->assignSuitScore($currentCard['suit']) < $this->assignSuitScore($nextCard['suit'])) {
 
                     return true;
 
@@ -338,22 +400,22 @@ class GameController extends Controller
         try {
 
 
-            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) > $this->assignValueScore($nextCard['value'])) {
 
                 return true;
 
             }
 
-            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) < $this->assignValueScore($nextCard['value'])) {
 
                 return false;
 
             }
 
 
-            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard)) {
+            if ($this->assignValueScore($currentCard['value']) == $this->assignValueScore($nextCard['value'])) {
 
-                if ($this->assignSuitScore($currentCard['value']) > $this->assignSuitScore($nextCard)) {
+                if ($this->assignSuitScore($currentCard['suit']) > $this->assignSuitScore($nextCard['suit'])) {
 
                     return true;
 
@@ -374,7 +436,6 @@ class GameController extends Controller
 
 
     }
-
 
 
 

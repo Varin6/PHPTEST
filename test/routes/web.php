@@ -14,6 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [GameController::class, 'index']);
+Route::get('/', [GameController::class, 'index'])->name('index');
 Route::get('/higher', [GameController::class, 'higher'])->name('higher');
 Route::get('/lower', [GameController::class, 'lower'])->name('lower');
